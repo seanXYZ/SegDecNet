@@ -27,10 +27,14 @@ parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rat
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 
-parser.add_argument("--begin_epoch", type=int, default=0, help="number of gpu")
-parser.add_argument("--end_epoch", type=int, default=31, help="number of gpu")
+parser.add_argument("--begin_epoch", type=int, default=0, help="begin_epoch")
+parser.add_argument("--end_epoch", type=int, default=51, help="end_epoch")
+
+parser.add_argument("--need_test", type=bool, default=True, help="need to test")
 parser.add_argument("--test_interval", type=int, default=10, help="interval of test")
-parser.add_argument("--save_interval", type=int, default=10, help="interval of test")
+parser.add_argument("--need_save", type=bool, default=True, help="need to save")
+parser.add_argument("--save_interval", type=int, default=10, help="interval of save weights")
+
 
 parser.add_argument("--img_height", type=int, default=704, help="size of image height")
 parser.add_argument("--img_width", type=int, default=256, help="size of image width")
@@ -52,34 +56,34 @@ dataSetRoot = "/home/sean/Data/KolektorSDD_sean"
 
 # Build nets
 segment_net = SegmentNet(init_weights=True)
-decision_net = DecisionNet(init_weights=True)
+#decision_net = DecisionNet(init_weights=True)
 
 # Loss functions
 criterion_segment  = torch.nn.MSELoss()
-criterion_decision = torch.nn.L1Loss()
+#criterion_decision = torch.nn.L1Loss()
 
 if opt.cuda:
     segment_net = segment_net.cuda()
-    decision_net = decision_net.cuda()
+    #decision_net = decision_net.cuda()
     criterion_segment.cuda()
-    criterion_decision.cuda()
+    #criterion_decision.cuda()
 
 if opt.gpu_num > 1:
     segment_net = torch.nn.DataParallel(segment_net, device_ids=list(range(opt.gpu_num)))
-    decision_net = torch.nn.DataParallel(decision_net, device_ids=list(range(opt.gpu_num)))
+    # decision_net = torch.nn.DataParallel(decision_net, device_ids=list(range(opt.gpu_num)))
 
 if opt.begin_epoch != 0:
     # Load pretrained models
-    segment_net.load_state_dict(torch.load("saved_models/%s/generator_%d.pth" % (opt.dataset_name, opt.epoch)))
-    decision_net.load_state_dict(torch.load("saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, opt.epoch)))
+    segment_net.load_state_dict(torch.load("./saved_models/segment_net_%d.pth" % (opt.begin_epoch)))
+    # decision_net.load_state_dict(torch.load("./saved_models/decision_net_%d.pth" % (opt.begin_epoch)))
 else:
     # Initialize weights
     segment_net.apply(weights_init_normal)
-    decision_net.apply(weights_init_normal)
+    # decision_net.apply(weights_init_normal)
 
 # Optimizers
 optimizer_seg = torch.optim.Adam(segment_net.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-optimizer_dec = torch.optim.Adam(decision_net.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+#optimizer_dec = torch.optim.Adam(decision_net.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
 transforms_ = transforms.Compose([
     transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
@@ -125,7 +129,7 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
     lenNum = 2*(lenNum-1)
 
     segment_net.train()
-
+    # train *****************************************************************
     for i in range(0, lenNum):
         if i % 2 == 0:
             batchData = iterOK.__next__()
@@ -161,10 +165,11 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
                 loss_seg.item()
              )
         )
-
-    if epoch % opt.test_interval == 0 and epoch >= opt.test_interval:
+    
+    # test ****************************************************************************
+    if opt.need_test and epoch % opt.test_interval == 0 and epoch >= opt.test_interval:
         segment_net.eval()
-        
+
         for i, testBatch in enumerate(testloader):
             imgTest = testBatch["img"].cuda()
             t1 = time.time()
@@ -180,9 +185,18 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
             print("processing image NO %d, time comsuption %fs"%(i, t2 - t1))
             save_image(imgTest.data, "%s/img_%d.jpg"% (save_path_str, i))
             save_image(segTest.data, "%s/img_%d_seg.jpg"% (save_path_str, i))
-
-
-    if epoch % opt.save_interval == 0 and epoch >= opt.save_interval:
         
-        
+        segment_net.train()
+
+    # save parameters *****************************************************************
+    if opt.need_save and epoch % opt.save_interval == 0 and epoch >= opt.save_interval:
+        segment_net.eval()
+
+        save_path_str = "./saved_models"
+        if os.path.exists(save_path_str) == False:
+            os.makedirs(save_path_str, exist_ok=True)
+
+        torch.save(segment_net.state_dict(), "%s/segment_net_%d.pth" % (save_path_str, epoch))
+        print("save weights ! epoch = %d"%epoch)
+        segment_net.train()
         pass
