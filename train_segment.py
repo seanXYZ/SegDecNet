@@ -28,7 +28,7 @@ parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first 
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 
 parser.add_argument("--begin_epoch", type=int, default=0, help="begin_epoch")
-parser.add_argument("--end_epoch", type=int, default=51, help="end_epoch")
+parser.add_argument("--end_epoch", type=int, default=61, help="end_epoch")
 
 parser.add_argument("--need_test", type=bool, default=True, help="need to test")
 parser.add_argument("--test_interval", type=int, default=10, help="interval of test")
@@ -112,6 +112,13 @@ trainNGloader = DataLoader(
     num_workers=opt.worker_num,
 )
 
+trainloader =  DataLoader(
+    SegDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
+    batch_size=opt.batch_size,
+    shuffle=True,
+    num_workers=opt.worker_num,
+)
+
 testloader = DataLoader(
     SegDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test", isTrain=False),
     batch_size=1,
@@ -177,7 +184,7 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
             t2 = time.time()
             segTest = rstTest["seg"]
 
-            save_path_str = "./testResult/epoch_%d"%epoch
+            save_path_str = "./testResultSeg/epoch_%d"%epoch
             if os.path.exists(save_path_str) == False:
                 os.makedirs(save_path_str, exist_ok=True)
                 #os.mkdir(save_path_str)

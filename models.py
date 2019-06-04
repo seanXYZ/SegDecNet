@@ -88,29 +88,29 @@ class DecisionNet(nn.Module):
 
         self.layer1 = nn.Sequential(
                             nn.MaxPool2d(2),
-                            nn.Conv2d(1025, 8, 5),
+                            nn.Conv2d(1025, 8, 5, stride=1, padding=2),
                             nn.BatchNorm2d(8),
                             nn.ReLU(inplace=True),
                             nn.MaxPool2d(2),
-                            nn.Conv2d(8, 16, 5),
+                            nn.Conv2d(8, 16, 5, stride=1, padding=2),
                             nn.BatchNorm2d(16),
                             nn.ReLU(inplace=True),
-                            nn.Conv2d(16, 32, 5),
+                            nn.Conv2d(16, 32, 5, stride=1, padding=2),
                             nn.BatchNorm2d(32),
                             nn.ReLU(inplace=True)
                         )
 
         self.fc =  nn.Sequential(
-                            nn.Linear(66, 1, bias=False)
+                            nn.Linear(66, 1, bias=False),
+                            nn.Sigmoid()
                         )
 
         if init_weights == True:
             pass
 
     def forward(self, f, s):
-        x = torch.cat((f, s), 1)
-        x1 = self.layer1(x)
-
+        xx = torch.cat((f, s), 1)
+        x1 = self.layer1(xx)
         x2 = x1.view(x1.size(0), x1.size(1), -1)
         s2 = s.view(s.size(0), s.size(1), -1)
 
@@ -129,12 +129,20 @@ if  __name__=='__main__':
     
     snet = SegmentNet()
     dnet = DecisionNet() 
+    img  =  torch.randn(4, 3, 704, 256)
 
-    img  =  torch.randn(4, 3, 512, 512)
+    snet.eval()
 
-    f,s = snet.forward(img)
-    c = dnet.forward(f,s)
+    snet = snet.cuda()
+    dnet = dnet.cuda()
+    img = img.cuda()
 
+    ret = snet(img)
+    f = ret["f"]
+    s = ret["seg"]
+
+    c = dnet(f, s)
+    print(c)
     pass
 
 
