@@ -1,6 +1,6 @@
 
 from models import SegmentNet, DecisionNet, weights_init_normal
-from dataset import SegDataset
+from dataset import KolektorDataset
 import numpy as np
 
 import torch.nn as nn
@@ -96,28 +96,28 @@ transforms_mask = transforms.Compose([
 
 
 trainOKloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask, subFold="Train_OK", isTrain=True),
+    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask, subFold="Train_OK", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
 
 trainNGloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_NG", isTrain=True),
+    KolektorDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_NG", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
 
 trainloader =  DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
+    KolektorDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
 
 testloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test_ALL", isTrain=False),
+    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test_ALL", isTrain=False),
     batch_size=1,
     shuffle=False,
     num_workers=0,

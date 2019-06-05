@@ -1,5 +1,5 @@
 from models import SegmentNet, DecisionNet, weights_init_normal
-from dataset import SegDataset
+from dataset import KolektorDataset
 
 import torch.nn as nn
 import torch
@@ -20,7 +20,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--cuda", type=bool, default=True, help="number of gpu")
 parser.add_argument("--test_seg_epoch", type=int, default=60, help="test segment epoch")
-parser.add_argument("--test_dec_epoch", type=int, default=50, help="test segment epoch")
+parser.add_argument("--test_dec_epoch", type=int, default=60, help="test segment epoch")
 parser.add_argument("--img_height", type=int, default=704, help="size of image height")
 parser.add_argument("--img_width", type=int, default=256, help="size of image width")
 
@@ -56,7 +56,7 @@ transforms_ = transforms.Compose([
 
 
 testloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_, transforms_mask= None,  subFold="Test", isTrain=False),
+    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= None,  subFold="Test", isTrain=False),
     batch_size=1,
     shuffle=False,
     num_workers=0,

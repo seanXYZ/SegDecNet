@@ -1,6 +1,6 @@
 
 from models import SegmentNet, DecisionNet, weights_init_normal
-from dataset import SegDataset
+from dataset import KolektorDataset
 
 import torch.nn as nn
 import torch
@@ -39,13 +39,6 @@ parser.add_argument("--save_interval", type=int, default=10, help="interval of s
 parser.add_argument("--img_height", type=int, default=704, help="size of image height")
 parser.add_argument("--img_width", type=int, default=256, help="size of image width")
 
-# parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
-# parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
-# parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
-# parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
-# parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
-# parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
-
 opt = parser.parse_args()
 
 print(opt)
@@ -56,34 +49,27 @@ dataSetRoot = "/home/sean/Data/KolektorSDD_sean"
 
 # Build nets
 segment_net = SegmentNet(init_weights=True)
-#decision_net = DecisionNet(init_weights=True)
 
 # Loss functions
 criterion_segment  = torch.nn.MSELoss()
-#criterion_decision = torch.nn.L1Loss()
 
 if opt.cuda:
     segment_net = segment_net.cuda()
-    #decision_net = decision_net.cuda()
     criterion_segment.cuda()
-    #criterion_decision.cuda()
+
 
 if opt.gpu_num > 1:
     segment_net = torch.nn.DataParallel(segment_net, device_ids=list(range(opt.gpu_num)))
-    # decision_net = torch.nn.DataParallel(decision_net, device_ids=list(range(opt.gpu_num)))
 
 if opt.begin_epoch != 0:
     # Load pretrained models
     segment_net.load_state_dict(torch.load("./saved_models/segment_net_%d.pth" % (opt.begin_epoch)))
-    # decision_net.load_state_dict(torch.load("./saved_models/decision_net_%d.pth" % (opt.begin_epoch)))
 else:
     # Initialize weights
     segment_net.apply(weights_init_normal)
-    # decision_net.apply(weights_init_normal)
-
+    
 # Optimizers
 optimizer_seg = torch.optim.Adam(segment_net.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-#optimizer_dec = torch.optim.Adam(decision_net.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
 transforms_ = transforms.Compose([
     transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
@@ -99,28 +85,28 @@ transforms_mask = transforms.Compose([
 
 
 trainOKloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask, subFold="Train_OK", isTrain=True),
+    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask, subFold="Train_OK", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
 
 trainNGloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_NG", isTrain=True),
+    KolektorDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_NG", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
 
 trainloader =  DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
+    KolektorDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
 
 testloader = DataLoader(
-    SegDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test", isTrain=False),
+    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test", isTrain=False),
     batch_size=1,
     shuffle=False,
     num_workers=0,

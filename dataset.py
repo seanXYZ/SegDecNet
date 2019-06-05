@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 
 import torchvision.transforms.functional as VF
 
-class SegDataset(Dataset):
+class KolektorDataset(Dataset):
     def __init__(self, dataRoot, transforms_= None, transforms_mask = None, subFold="Train_NG", isTrain=True):
 
         self.isTrain = isTrain
@@ -50,9 +50,9 @@ class SegDataset(Dataset):
                 mask = VF.hflip(mask)
                 img  = VF.hflip(img)
             
-            if np.random.rand(1) > 0.5:
-                mask = VF.vflip(mask)
-                img  = VF.vflip(img)
+            # if np.random.rand(1) > 0.5:
+            #     mask = VF.vflip(mask)
+            #     img  = VF.vflip(img)
 
             img = self.transform(img)
             mask = self.maskTransform(mask)
