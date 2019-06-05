@@ -43,7 +43,7 @@ opt = parser.parse_args()
 
 print(opt)
 
-dataSetRoot = "/home/sean/Data/KolektorSDD_sean"
+dataSetRoot = "/home/sean/Data/KolektorSDD_sean"  # "./Data"
 
 # ***********************************************************************
 
