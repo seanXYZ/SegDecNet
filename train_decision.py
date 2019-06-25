@@ -24,13 +24,13 @@ parser.add_argument("--cuda", type=bool, default=True, help="number of gpu")
 parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
 parser.add_argument("--worker_num", type=int, default=4, help="number of input workers")
 parser.add_argument("--batch_size", type=int, default=4, help="batch size of input")
-parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
+parser.add_argument("--lr", type=float, default=0.001, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 
 parser.add_argument("--begin_epoch", type=int, default=0, help="begin_epoch")
 parser.add_argument("--end_epoch", type=int, default=61, help="end_epoch")
-parser.add_argument("--seg_epoch", type=int, default=60, help="pretrained segment epoch")
+parser.add_argument("--seg_epoch", type=int, default=80, help="pretrained segment epoch")
 
 parser.add_argument("--need_test", type=bool, default=True, help="need to test")
 parser.add_argument("--test_interval", type=int, default=10, help="interval of test")
@@ -46,7 +46,7 @@ opt = parser.parse_args()
 
 print(opt)
 
-dataSetRoot = "/home/sean/Data/KolektorSDD_sean"
+dataSetRoot = "./Data" # "/home/sean/Data/KolektorSDD_sean"
 
 # ***********************************************************************
 
@@ -77,7 +77,7 @@ else:
 
 # load pretrained segment parameters
 segment_net.load_state_dict(torch.load("./saved_models/segment_net_%d.pth" % (opt.seg_epoch)))
-segment_net.eval()
+#segment_net.eval()
 
 # Optimizers
 optimizer_dec = torch.optim.Adam(decision_net.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
@@ -108,16 +108,16 @@ trainNGloader = DataLoader(
     shuffle=True,
     num_workers=opt.worker_num,
 )
-
+'''
 trainloader =  DataLoader(
     KolektorDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
-
+'''
 testloader = DataLoader(
-    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test_ALL", isTrain=False),
+    KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test", isTrain=False),
     batch_size=1,
     shuffle=False,
     num_workers=0,
@@ -132,8 +132,8 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
     lenNum = min( len(trainNGloader), len(trainOKloader))
     lenNum = 2*(lenNum-1)
 
-    decision_net.train()
-    segment_net.eval()
+    #decision_net.train()
+    #segment_net.eval()
     # train *****************************************************************
     for i in range(0, lenNum):
 
@@ -182,8 +182,8 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
     
     # test ****************************************************************************
     if opt.need_test and epoch % opt.test_interval == 0 and epoch >= opt.test_interval:
-        decision_net.eval()
-        segment_net.eval()
+        #decision_net.eval()
+        #segment_net.eval()
 
         for i, testBatch in enumerate(testloader):
             imgTest = testBatch["img"].cuda()
@@ -210,11 +210,11 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
             save_image(imgTest.data, "%s/img_%d_%s.jpg"% (save_path_str, i , labelStr))
             save_image(segTest.data, "%s/img_%d_seg_%s.jpg"% (save_path_str, i, labelStr))
         
-        decision_net.train()
+        #decision_net.train()
 
     # save parameters *****************************************************************
     if opt.need_save and epoch % opt.save_interval == 0 and epoch >= opt.save_interval:
-        decision_net.eval()
+        #decision_net.eval()
 
         save_path_str = "./saved_models"
         if os.path.exists(save_path_str) == False:
@@ -222,5 +222,5 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
 
         torch.save(decision_net.state_dict(), "%s/decision_net_%d.pth" % (save_path_str, epoch))
         print("save weights ! epoch = %d"%epoch)
-        decision_net.train()
+        #decision_net.train()
         pass

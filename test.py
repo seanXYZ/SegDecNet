@@ -62,18 +62,21 @@ testloader = DataLoader(
     num_workers=0,
 )
 
-segment_net.eval()
-decision_net.eval()
+#segment_net.eval()
+#decision_net.eval()
 
 for i, testBatch in enumerate(testloader):
     t1 = time.time()
     imgTest = testBatch["img"].cuda()
-    rstTest = segment_net(imgTest)
+
+    with torch.no_grad:
+        rstTest = segment_net(imgTest)
 
     fTest = rstTest["f"]
     segTest = rstTest["seg"]
 
-    cTest = decision_net(fTest, segTest)
+    with torch.no_grad:
+        cTest = decision_net(fTest, segTest)
 
     t2 = time.time()
 

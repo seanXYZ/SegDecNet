@@ -22,13 +22,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cuda", type=bool, default=True, help="number of gpu")
 parser.add_argument("--gpu_num", type=int, default=1, help="number of gpu")
 parser.add_argument("--worker_num", type=int, default=4, help="number of input workers")
-parser.add_argument("--batch_size", type=int, default=4, help="batch size of input")
-parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
+parser.add_argument("--batch_size", type=int, default=2, help="batch size of input")
+parser.add_argument("--lr", type=float, default=0.001, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
 
 parser.add_argument("--begin_epoch", type=int, default=0, help="begin_epoch")
-parser.add_argument("--end_epoch", type=int, default=61, help="end_epoch")
+parser.add_argument("--end_epoch", type=int, default=101, help="end_epoch")
 
 parser.add_argument("--need_test", type=bool, default=True, help="need to test")
 parser.add_argument("--test_interval", type=int, default=10, help="interval of test")
@@ -43,7 +43,7 @@ opt = parser.parse_args()
 
 print(opt)
 
-dataSetRoot = "/home/sean/Data/KolektorSDD_sean"  # "./Data"
+dataSetRoot = "./Data" #"/home/sean/Data/KolektorSDD_sean"  # 
 
 # ***********************************************************************
 
@@ -98,18 +98,20 @@ trainNGloader = DataLoader(
     num_workers=opt.worker_num,
 )
 
+'''
 trainloader =  DataLoader(
     KolektorDataset(dataSetRoot, transforms_=transforms_,  transforms_mask= transforms_mask, subFold="Train_ALL", isTrain=True),
     batch_size=opt.batch_size,
     shuffle=True,
     num_workers=opt.worker_num,
 )
+'''
 
 testloader = DataLoader(
     KolektorDataset(dataSetRoot, transforms_=transforms_, transforms_mask= transforms_mask,  subFold="Test", isTrain=False),
     batch_size=1,
     shuffle=False,
-    num_workers=0,
+    num_workers=opt.worker_num,
 )
 
 
@@ -161,7 +163,7 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
     
     # test ****************************************************************************
     if opt.need_test and epoch % opt.test_interval == 0 and epoch >= opt.test_interval:
-        segment_net.eval()
+        # segment_net.eval()
 
         for i, testBatch in enumerate(testloader):
             imgTest = testBatch["img"].cuda()
@@ -183,7 +185,7 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
 
     # save parameters *****************************************************************
     if opt.need_save and epoch % opt.save_interval == 0 and epoch >= opt.save_interval:
-        segment_net.eval()
+        #segment_net.eval()
 
         save_path_str = "./saved_models"
         if os.path.exists(save_path_str) == False:
@@ -191,5 +193,5 @@ for epoch in range(opt.begin_epoch, opt.end_epoch):
 
         torch.save(segment_net.state_dict(), "%s/segment_net_%d.pth" % (save_path_str, epoch))
         print("save weights ! epoch = %d"%epoch)
-        segment_net.train()
+        #segment_net.train()
         pass
