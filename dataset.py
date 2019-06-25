@@ -50,9 +50,9 @@ class KolektorDataset(Dataset):
                 mask = VF.hflip(mask)
                 img  = VF.hflip(img)
             
-            # if np.random.rand(1) > 0.5:
-            #     mask = VF.vflip(mask)
-            #     img  = VF.vflip(img)
+            if np.random.rand(1) > 0.5:
+                mask = VF.vflip(mask)
+                img  = VF.vflip(img)
 
             img = self.transform(img)
             mask = self.maskTransform(mask)
