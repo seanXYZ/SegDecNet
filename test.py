@@ -28,7 +28,7 @@ opt = parser.parse_args()
 
 print(opt)
 
-dataSetRoot = "/home/sean/Data/KolektorSDD_sean"
+dataSetRoot = "/home/sean/Projects/SegDecNet/Data"
 
 # ***********************************************************************
 
@@ -66,18 +66,24 @@ testloader = DataLoader(
 #decision_net.eval()
 
 for i, testBatch in enumerate(testloader):
+    
+    torch.cuda.synchronize()
+
     t1 = time.time()
     imgTest = testBatch["img"].cuda()
 
-    with torch.no_grad:
+    
+
+    with torch.no_grad():
         rstTest = segment_net(imgTest)
 
     fTest = rstTest["f"]
     segTest = rstTest["seg"]
 
-    with torch.no_grad:
+    with torch.no_grad():
         cTest = decision_net(fTest, segTest)
 
+    torch.cuda.synchronize()
     t2 = time.time()
 
     if cTest.item() > 0.5:

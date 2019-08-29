@@ -26,7 +26,7 @@ class KolektorDataset(Dataset):
         self.imgFiles   = sorted(glob.glob(os.path.join(dataRoot, subFold) + "/*.jpg"))
 
         if isTrain:
-            self.labelFiles = sorted(glob.glob(os.path.join(dataRoot, subFold) + "/*.bmp"))
+            self.labelFiles = sorted(glob.glob(os.path.join(dataRoot, subFold) + "/*.jpg"))
 
         self.len = len(self.imgFiles)
 

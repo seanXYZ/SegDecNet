@@ -30,7 +30,7 @@ parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of firs
 
 parser.add_argument("--begin_epoch", type=int, default=0, help="begin_epoch")
 parser.add_argument("--end_epoch", type=int, default=61, help="end_epoch")
-parser.add_argument("--seg_epoch", type=int, default=80, help="pretrained segment epoch")
+parser.add_argument("--seg_epoch", type=int, default=50, help="pretrained segment epoch")
 
 parser.add_argument("--need_test", type=bool, default=True, help="need to test")
 parser.add_argument("--test_interval", type=int, default=10, help="interval of test")
